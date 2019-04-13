@@ -22,7 +22,7 @@ def viterbi (word_list, A, B, Pi):
     seq = np.zeros(T);
     seq[T-1] =  delta_table[:, T-1].argmax()
     for t in range(T-1, 0, -1):
-        seq[t-1] = psi[seq[t],t]
+        seq[t-1] = psi[int(seq[t]),t]
 
     return seq
 

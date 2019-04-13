@@ -5,11 +5,9 @@ from collections import Counter, defaultdict
 import random
 
 class simple_tagger:
-    # This list consists of all the tags that exist in treebank.tagged_sents()
-    _TAGS = ['PRP$', 'VBG', 'VBD', '``', 'VBN', 'POS', "''", 'VBP', 'WDT', 'JJ', 'WP', 'VBZ', 'DT', '#',
-         'RP', '$', 'NN', 'FW', ',', '.', 'TO', 'PRP', 'RB', '-LRB-', ':', 'NNS', 'NNP', 'VB', 'WRB',
-         'CC', 'LS', 'PDT', 'RBS', 'RBR', 'CD', '-NONE-', 'EX', 'IN', 'WP$', 'MD', 'NNPS', '-RRB-', 'JJS',
-         'JJR', 'SYM', 'UH']
+    def __init__(self, tags):
+        self._tags = tags
+
 
     def train(self, data):
         """
@@ -43,7 +41,7 @@ class simple_tagger:
                 prediction = self._model.get(word, None)
                 # If the examined word doesn't exist in the model, choose a random tag
                 if prediction is None:
-                    prediction = random.choice(self._TAGS)
+                    prediction = random.choice(self._tags)
 
                 if tag == prediction:
                     # Count this word as successful
