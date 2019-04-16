@@ -17,7 +17,6 @@ class hmm_tagger:
         self.Pi = np.zeros(len(self._tags))
 
         for sentence in data:
-            self.Pi[self._tags.index(sentence[0][1])] += 1
             for i in xrange(len(sentence)):
                 word, tag = sentence[i]
 
@@ -30,7 +29,10 @@ class hmm_tagger:
                 # Skip the last tag, because there's no following tag to check
                 if i < len(sentence) - 1:
                     count_tag_pairs[tag][sentence[i+1][1]] += 1
-        self.Pi /= float(len(data))
+                # Count the appearences of each tag
+                self.Pi[self._tags.index(tag)] += 1
+        # We want Pi to hold the probabilities
+        self.Pi /= float(len(self.word_to_index))
 
         self.A = np.zeros((len(self._tags), len(self._tags)))
         for first_tag in self._tags:
@@ -48,6 +50,7 @@ class hmm_tagger:
 
         self.B = np.zeros((len(self._tags), len(count_word_tags)))
         for word in count_word_tags:
+            # Count the amount of appearences of the current word
             word_count = sum(count_word_tags[word].itervalues())
             for tag in count_word_tags[word]:
                 word_tag_prob = count_word_tags[word][tag] / float(word_count)
@@ -59,11 +62,14 @@ class hmm_tagger:
         sentence_correct = True
         sentence_success = 0
         for sentence in data:
+            # Get the prediction according to Viterbi
             prediction = self._do_viterbi(sentence)
+            # Convert each word to its corresponding index
             prediction = map(lambda tag_index: None if tag_index is None else self._tags[int(tag_index)],
                              prediction)
             for i in xrange(len(sentence)):
                 word_count += 1
+                # If this word wasn't seen in the training set (OOV word), choose a random tag
                 if prediction[i] is None:
                     prediction[i] = random.choice(self._tags)
                 if sentence[i][1] == prediction[i]:
@@ -87,20 +93,24 @@ class hmm_tagger:
             if word in self.word_to_index:
                 word_list.append(self.word_to_index[word])
             else:
+                # If we encountered an OOV word call Viterbi on the previous words
                 if len(word_list) != 0:
-                    viterbi_results = np.concatenate((viterbi_results, viterbi(word_list,self.A,self.B,self.Pi)))
-                viterbi_results = np.append(viterbi_results,None)
+                    viterbi_results = np.concatenate((viterbi_results, viterbi(word_list, self.A, self.B, self.Pi)))
+                viterbi_results = np.append(viterbi_results, None)
                 word_list = []
+        # Call Viterbi on the last chunk of the sentence (it may be the full sentence, if there
+        # wasn't an OOV word in this sentence)
         if len(word_list) != 0:
-            viterbi_results = np.concatenate((viterbi_results, viterbi(word_list,self.A,self.B,self.Pi)))
+            viterbi_results = np.concatenate((viterbi_results, viterbi(word_list, self.A, self.B, self.Pi)))
 
         return viterbi_results
 
 def main():
     from nltk.corpus import treebank
+    from main import TAGS
     train_data = treebank.tagged_sents()[:3000]
     test_data = treebank.tagged_sents()[3000:]
-    hmm = hmm_tagger()
+    hmm = hmm_tagger(TAGS)
     print 'start train'
     hmm.train(train_data)
     print 'start test'

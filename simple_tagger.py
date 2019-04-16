@@ -58,9 +58,10 @@ class simple_tagger:
 
 if __name__ == "__main__":
     from nltk.corpus import treebank
+    from main import TAGS
     train_data = treebank.tagged_sents()[:3000]
     test_data = treebank.tagged_sents()[3000:]
-    simple = simple_tagger()
+    simple = simple_tagger(TAGS)
     simple.train(train_data)
     word_acc, sent_acc = simple.evaluate(test_data)
     print "Word accuracy = {0}% | Sentence accuracy = {1}%".format(word_acc * 100, sent_acc * 100)
